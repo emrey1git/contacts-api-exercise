@@ -1,0 +1,16 @@
+{
+  "name": "contacts-api-exercise",
+  "version": "1.0.0",
+  "description": "Node.js ve Express alıştırma projesi",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
