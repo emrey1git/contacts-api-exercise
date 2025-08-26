@@ -1,74 +1,106 @@
-// In-memory contacts
-let contacts = [
-  { id: 1, name: "Ahmet", phone: "555-1234", email: "ahmet@mail.com" },
-  { id: 2, name: "Ayşe", phone: "555-5678", email: "ayse@mail.com" },
-];
+import Contact from "../models/contact.js";
+import { getContactServices } from "../services/contactService.js";
+import { sort } from "../utils/sort.js";
+import { pagination } from "../utils/pagination.js";
+import { parseFilter } from "../utils/filter.js";
 
 // GET /contacts
-export const getContact = (req, res) => {
-  res.json(contacts);
+export const getContact = async (req, res) => {
+  try {
+    const { page, skip, limit } = pagination(req.query);
+    const sortParams = sort(req.query);
+    const filter = parseFilter(req.query);
+
+    const contactsData = await getContactServices({
+      skip,
+      limit,
+      sort: sortParams,
+      page,
+      filter,
+    });
+
+    res.json({
+      status: 200,
+      message: "Contacts başarıyla listelendi",
+      ...contactsData, // data ve pagination bilgisi servis tarafından geliyor
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // GET /contacts/:id
-export const getContactById = (req, res) => {
-  const id = parseInt(req.params.id);
-  const contact = contacts.find(c => c.id === id);
-  if (!contact) return res.status(404).json({ message: "Contact bulunamadı" });
-  res.json(contact);
+export const getContactById = async (req, res) => {
+  try {
+    const contact = await Contact.findById(req.params.id);
+    if (!contact)
+      return res.status(404).json({ message: "Contact bulunamadı" });
+    res.json(contact);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // POST /contacts
-export const createContact = (req, res) => {
-  const { name, phone, email } = req.body;
-  if (!name || !phone) return res.status(400).json({ message: "Name ve phone zorunlu" });
-
-  const newContact = {
-    id: contacts.length + 1,
-    name,
-    phone,
-    email: email || "",
-  };
-  contacts.push(newContact);
-  res.status(201).json(newContact);
+export const createContact = async (req, res) => {
+  try {
+    const newContact = await Contact.create(req.body);
+    res.status(201).json(newContact);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 };
 
-//PUT /contacts/:id //tam günclleme
-export const putContactById =(req,res)=>{
-    const id = parseInt(req.params.id);
-    const contact = contacts.find(c=>c.id===id);
-    if(!contact) return res.status(404).json({ message: "Contact bulunamadı"});
-    
-    const {name,phone,email}=req.body;
-    if(!name || !phone) return res.status(400).json({message: "Name ve phone zorunlu" });
+// PUT /contacts/:id (tam güncelleme)
+export const putContactById = async (req, res) => {
+  try {
+    const { name, phone, email, address, company, notes, isFavorite } =
+      req.body;
+    if (!name || !phone || !email) {
+      return res
+        .status(400)
+        .json({ message: "Name, phone ve email zorunludur" });
+    }
 
-     // Var olan contact’ı tamamen güncelle
-  contact.name = name;
-  contact.phone = phone;
-  contact.email = email || "";
+    const updated = await Contact.findByIdAndUpdate(
+      req.params.id,
+      { name, phone, email, address, company, notes, isFavorite },
+      { new: true, runValidators: true }
+    );
 
-  res.json(contact);
-}
+    if (!updated)
+      return res.status(404).json({ message: "Contact bulunamadı" });
+    res.json(updated);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
 
-//PATCH /contacts/:id kısmi güncelleme
-export const patchContactById = (req,res)=>{
-    const id=parseInt(req.params.id);
-    const contact = contacts.find(c=>c.id===id);
-    if(!contact) return res.status(404).json({ message: "Contact bulunamadı" });
+// PATCH /contacts/:id (kısmi güncelleme)
+export const patchContactById = async (req, res) => {
+  try {
+    const updated = await Contact.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
 
-     const { name, phone, email } = req.body;
+    if (!updated)
+      return res.status(404).json({ message: "Contact bulunamadı" });
+    res.json(updated);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
 
-     if(name !== undefined) contact.name =name;
-     if(phone !== undefined) contact.phone = phone;
-     if(email !== undefined) contact.email = email;
-
-      res.json(contact);
-}
 // DELETE /contacts/:id
-export const deleteContact = (req, res) => {
-  const id = parseInt(req.params.id);
-  const index = contacts.findIndex(c => c.id === id);
-  if (index === -1) return res.status(404).json({ message: "Contact bulunamadı" });
+export const deleteContact = async (req, res) => {
+  try {
+    const deleted = await Contact.findByIdAndDelete(req.params.id);
 
-  const deleted = contacts.splice(index, 1);
-  res.json(deleted[0]);
+    if (!deleted)
+      return res.status(404).json({ message: "Contact bulunamadı" });
+    res.json(deleted);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 };

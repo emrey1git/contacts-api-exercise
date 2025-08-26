@@ -1,5 +1,6 @@
 import express from "express";
 import contactsRouter from "./routes/contacts.js";
+import db from "./db/db.js";
 
 const app = express();
 const PORT = 3000;
