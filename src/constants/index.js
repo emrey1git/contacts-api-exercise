@@ -10,3 +10,8 @@ export const ROLES ={
     USER: "user",
     ADMIN: "admin",
 }
+
+export const TOKEN_EXPIRATION ={
+     ACCESS_TOKEN: 15 * 60 * 1000, 
+  REFRESH_TOKEN:  24 * 60 * 60 * 1000, 
+}
