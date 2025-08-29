@@ -14,6 +14,6 @@ router.post("/register", validateRequest(registerUserSchema), authController.reg
 router.post("/login", validateRequest(loginUserSchema), authController.login);
 
 // çıkış yapma 
-router.post("/logout", authController.logout);
+router.post("/logout", authenticate, authController.logout);
 
 export default router;

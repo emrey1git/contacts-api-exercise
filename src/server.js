@@ -13,6 +13,7 @@ db();
 import contactsRouter from "./routes/contactsRouter.js";
 import authRouter from "./routes/authRoutes.js";
 import { authenticate } from "./middlewares/authMiddleware.js";
+import cookieParser from "cookie-parser";
 
 // Validator
 import {
@@ -24,8 +25,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(express.json());
 
+app.use(express.json());
+app.use(cookieParser());
 // Routes
 app.use("/auth", authRouter);
 app.use("/contacts", contactsRouter);
